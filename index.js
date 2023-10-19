@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -31,22 +31,47 @@ async function run() {
         const brandsCollection = client.db("productDB").collection('brands');
         // const haiku = database.collection("haiku");
 
-        app.get("/brands", async(req, res) => {
+        app.get("/brands", async (req, res) => {
             const cursor = brandsCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
 
-        app.get("/brand-products", async(req, res) => {
+        app.get("/brand-products", async (req, res) => {
             const cursor = productCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
 
-        app.post('/brand-products', async(req, res) => {
+        app.get('/brand-products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await productCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.post('/brand-products', async (req, res) => {
             const newProduct = req.body;
             console.log(newProduct)
             const result = await productCollection.insertOne(newProduct)
+            res.send(result);
+        })
+
+        app.put('/brand-products/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updatedProduct = req.body
+            const updatedNewProduct = {
+                $set: {
+                    productImg: updatedProduct.productImg, productName: updatedProduct.productName,
+                    brand: updatedProduct.brand,
+                    ratings: updatedProduct.ratings,
+                    price: updatedProduct.price,
+                    productType: updatedProduct.productType, description: updatedProduct.description,
+                }
+            }
+            const result = await productCollection.updateOne(filter, updatedNewProduct, options)
             res.send(result);
         })
 
