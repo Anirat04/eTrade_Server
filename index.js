@@ -25,11 +25,12 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const productCollection = client.db("productDB").collection('product');
         const brandsCollection = client.db("productDB").collection('brands');
         const cartsCollection = client.db("productDB").collection('cart');
+        const adsCollection = client.db("productDB").collection('adsBanner');
         // const haiku = database.collection("haiku");
 
         // this is for getting all the brand information which is used in the home component
@@ -96,22 +97,21 @@ async function run() {
 
         app.delete('/carts/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { _id: id}
+            const query = { _id: id }
             const result = await cartsCollection.deleteOne(query)
             res.send(result)
         })
 
-        // app.delete('/carts/:id', async(req, res) => {
-        //     const id = req.params.id;
-        //     console.log(id)
-        //     const query = {_id: new ObjectId(id)}
-        //     const result = await cartsCollection.deleteOne(query)
-        //     res.send(result)
-        // })
+        // get collection of advertisement images
+        app.get("/ads", async (req, res) => {
+            const cursor = adsCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
